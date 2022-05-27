@@ -12,6 +12,7 @@ var http = require('http');
  * Get port from environment and store in Express.
  */
 
+// nodeJS에서 환경 변수를 가져올 때 사용 (여기선 포트 번호를 지정)
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
@@ -25,9 +26,9 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+server.listen(port); // 설정한 포트를 기반으로한 서버 실행
+server.on('error', onError); // 실행 시 Error발생 = onError 함수 실행
+server.on('listening', onListening); // 실행 성공 = onListening 함수 실행
 
 /**
  * Normalize a port into a number, string, or false.
