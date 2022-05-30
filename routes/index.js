@@ -18,7 +18,7 @@ router.get('/index', async function(req, res, next) {
   const [array] = await connection.query(sql);
 
 
-  res.send(array)
+  return res.send(array)
 });
 
 module.exports = router;
