@@ -7,6 +7,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 // cors 이슈 해결을 위한 cors 패키지 추가.
 const cors = require('cors');
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
@@ -35,23 +36,15 @@ var http = require('http');
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
-/**
- * Create HTTP server.
- */
+// Create HTTP server.
 
 var server = http.createServer(app);
 
-/**
- * Listen on provided port, on all network interfaces.
- */
-
 server.listen(port); // 설정한 포트를 기반으로한 서버 실행
-server.on('error', onError); // 실행 시 Error발생 = onError 함수 실행
-server.on('listening', onListening); // 실행 성공 = onListening 함수 실행
+// server.on('error', onError); // 실행 시 Error발생 = onError 함수 실행
+// server.on('listening', onListening); // 실행 성공 = onListening 함수 실행
 
-/**
- * Normalize a port into a number, string, or false.
- */
+// Normalize a port into a number, string, or false
 
 function normalizePort(val) {
     var port = parseInt(val, 10);
@@ -69,9 +62,10 @@ function normalizePort(val) {
     return false;
 }
 
-/**
+/*
+/!**
  * Event listener for HTTP server "error" event.
- */
+ *!/
 
 function onError(error) {
     if (error.syscall !== 'listen') {
@@ -97,9 +91,9 @@ function onError(error) {
     }
 }
 
-/**
+/!**
  * Event listener for HTTP server "listening" event.
- */
+ *!/
 
 function onListening() {
     var addr = server.address();
@@ -107,7 +101,7 @@ function onListening() {
         ? 'pipe ' + addr
         : 'port ' + addr.port;
     debug('Listening on ' + bind);
-}
+}*/
 // TODO: 서버 실행 시 로깅 = 후에 winston morgan 등 로그 라이브러리로 대체 예정
 console.log(`Server - API Server Start At Port ${port}`);
 
