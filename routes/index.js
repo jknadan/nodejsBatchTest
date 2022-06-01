@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 // database.js에서 exports 한 pool 모듈을 가져옴. ("" 써야함-> 왜? '' 랑 차이점은 뭔데?)
 const { pool } = require("../config/database");
+const {response, errResponse} = require("../config/response");
+const baseResponse = require("../config/baseResponseDict");
 
 /* GET home page. */
 // 첫번째 param = URL 정의 || 두번째 param = 해당 URL에서 할 작업 → req: URL에 담긴 요청정보 res: 작업 수행 후 보내줄 정보
@@ -18,7 +20,7 @@ router.get('/index', async function(req, res, next) {
   const [array] = await connection.query(sql);
 
 
-  return res.send(array)
+  return res.send(response(baseResponse.SUCCESS("성공 메세지를 입력하세요"),array));
 });
 
 module.exports = router;
