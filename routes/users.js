@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const {response,errResponse} = require('./../config/response');
 const baseResponse = require('./../config/baseResponseDict');
+const logger = require('loglevel');
 
 router.get('/', function(req, res, next) {
 
