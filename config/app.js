@@ -25,7 +25,7 @@ const indexRouter = require('../routes');
 const usersRouter = require('../routes/users');
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/', usersRouter);
 
 let debug = require('debug')('nodetemplate:server');
 
