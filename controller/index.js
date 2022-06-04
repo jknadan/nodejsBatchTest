@@ -3,22 +3,21 @@ const { pool } = require("../config/database");
 const {response, errResponse} = require("../config/response");
 const baseResponse = require("../config/baseResponseDict");
 const logger = require('loglevel');
+const indexDao = require("../DAO/index");
+
+
 
 exports.indexTest = async function (req, res, next) {
 
     try{
-        let result = {
-            message : 'hello',
-            id : "123"
-        };
 
-        // sql=쿼리문
-        const sql = 'select * from test;'
         // pool에서 getConnection 의 뜻과 사용 용도를 아직 모름 -> 알아봐야할 듯
         const connection = await pool.getConnection(async (conn)=>conn);
-        const [array] = await connection.query(sql);
+        // 생성한 connection 객체를 DAO의 indexTestQuery 함수에 전달 → DAO에서 쿼리 수행 후 결과 값 반환 받음
+        const result = await indexDao.indexTestQuery(connection);
 
-        return res.send(response(baseResponse.SUCCESS("성공 메세지를 입력하세요"),array));
+
+        return res.send(response(baseResponse.SUCCESS("성공 메세지를 입력하세요"),result));
 
 
         //Error 발생시 catch 문 실행
