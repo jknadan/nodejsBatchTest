@@ -15,6 +15,9 @@ exports.indexTest = async function (req, res, next) {
         const connection = await pool.getConnection(async (conn)=>conn);
         // 생성한 connection 객체를 DAO의 indexTestQuery 함수에 전달 → DAO에서 쿼리 수행 후 결과 값 반환 받음
         const result = await indexDao.indexTestQuery(connection);
+        // connection을 썻으면 반드시 release를 해줘야한다. => 계속 connection 연결 시 중복 + Err
+        connection.release();
+
 
 
         return res.send(response(baseResponse.SUCCESS("성공 메세지를 입력하세요"),result));
