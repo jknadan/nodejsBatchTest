@@ -22,7 +22,8 @@ exports.indexTest = async function (req, res, next) {
 
         //Error 발생시 catch 문 실행
     }catch (err) {
-        logger.warn(err + "응답 실패")
+        // TODO : 에러 로그 템플릿 - catch 문에서 발생한 err log 는 아래와 같이 진행(반드시 그렇게 해야할 필요는 없음)
+        logger.warn("응답 실패" + err)
         return res.send(errResponse(baseResponse.FAIL))
     }
 
