@@ -1,6 +1,6 @@
-const { pool } = require("../config/database");
-const {response,errResponse} = require('./../config/response');
-const baseResponse = require('./../config/baseResponseDict');
+const { pool } = require("../../config/database");
+const {response,errResponse} = require('../../config/response');
+const baseResponse = require('../../config/baseResponseDict');
 const logger = require('loglevel');
 // TODO : userDAO 추가
 

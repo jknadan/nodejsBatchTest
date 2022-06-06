@@ -1,9 +1,9 @@
 // database.js에서 exports 한 pool 모듈을 가져옴. ("" 써야함-> 왜? '' 랑 차이점은 뭔데?)
-const { pool } = require("../config/database");
-const {response, errResponse} = require("../config/response");
-const baseResponse = require("../config/baseResponseDict");
+const { pool } = require("../../config/database");
+const {response, errResponse} = require("../../config/response");
+const baseResponse = require("../../config/baseResponseDict");
 const logger = require('loglevel');
-const indexDao = require("../DAO/index");
+const indexDao = require("../DAO");
 
 
 
