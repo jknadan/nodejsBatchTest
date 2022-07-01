@@ -17,9 +17,7 @@ exports.indexTest = async function (req, res, next) {
         const result = await indexDao.indexTestQuery(connection);
         // connection을 썻으면 반드시 release를 해줘야한다. => 계속 connection 연결 시 중복 + Err
         connection.release();
-
-
-
+        
         return res.send(response(baseResponse.SUCCESS("성공 메세지를 입력하세요"),result));
 
 
