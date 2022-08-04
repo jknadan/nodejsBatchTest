@@ -19,8 +19,8 @@ async function testInsert(){
     let random2 = Math.random().toString(36).substr(2,11);
     let random3 = Math.random().toString(36).substr(2,11);
     let random4 = Math.random().toString(36).substr(2,11);
-    const result = await testDao.insertTestQuery(connection,[random,random2,random3,random4]);
-    console.log(result);
+    // const result = await testDao.insertTestQuery(connection,[random,random2,random3,random4]);
+    // console.log(result);
 
     release(connection);
 }

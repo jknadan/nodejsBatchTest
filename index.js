@@ -12,7 +12,7 @@ let port = 3001;
 app.set('port', port);
 
 server.listen(port); // 설정한 포트를 기반으로한 서버 실행
-schedule();
+// schedule();
 
 // TODO: 서버 실행 시 로깅 = 후에 winston morgan 등 로그 라이브러리로 대체 예정
 // → log level library를 채택. 그러나 level 등 기본 설정 공부 필요
