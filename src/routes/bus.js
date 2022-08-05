@@ -14,4 +14,6 @@ router.get("/bus/seat/list", bus.getSeatList);
 
 router.get("/terminal/list/nearest", bus.getNearestTer);
 
+router.get("/terminal/list/nearest/two", bus.getNearestTerTwo);
+
 module.exports = router;

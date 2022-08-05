@@ -61,7 +61,7 @@ exports.getRouteDepart = async function(connection,terminalId){
 
 exports.getRouteArrival = async function(connection,terminalId){
     const sql = `
-            select routeId,cityRegion,cityName,departTerId,departTerName
+            select routeId,cityRegion,cityName,departTerId,departTerName,latitude,longitude
                 from route
                     inner join terminal t on route.departTerId = t.tmoneyTerId
             where arrivalTerId = ?;

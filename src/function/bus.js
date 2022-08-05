@@ -193,8 +193,6 @@ exports.checkExistRoute = async function(list){
 
     try{
         const allRoute = await busDao.getAllRoute(connection);
-        console.log(allRoute[1].routeId);
-        console.log(list.length);
 
         let temp = [];
 
@@ -206,6 +204,10 @@ exports.checkExistRoute = async function(list){
             (element, i) => temp.includes(element.routeId)
         )
 
+        connection.release;
+
+        return list;
+
 
     }catch (err) {
         logger.warn(err + "에러 발생");
@@ -214,3 +216,18 @@ exports.checkExistRoute = async function(list){
     }
 }
 
+exports.getNearestTerminal = async function(temp,user){
+
+    const connection = await pool.getConnection((conn)=>conn);
+
+    try{
+
+
+
+    }catch (err) {
+
+
+
+    }
+
+}

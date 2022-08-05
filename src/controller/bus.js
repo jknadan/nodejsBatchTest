@@ -140,7 +140,6 @@ exports.getSeatList = async function (req, res) {
 
 exports.getNearestTer = async function(req,res){
 
-    let terminalInfo = [];
     let distance, resultRow;
     const type = 'a';
     const itemName = 'departure'
@@ -167,10 +166,60 @@ exports.getNearestTer = async function(req,res){
 
     const exist = await busFunction.checkExistRoute(list);
 
+    for(let i in exist){
+        const end = {
+            latitude: Number(exist[i].latitude),
+            longitude: Number(exist[i].longitude),
+        }
+
+        if (i === "0") {
+            distance = haversine(user, end, { unit: "mile" });
+            resultRow = {
+                DepartureTerName: exist[i].departTerName,
+                DepartureTerId: exist[i].departTerId,
+            };
+        } else if (distance >= haversine(user, end, { unit: "mile" })) {
+            distance = haversine(user, end, { unit: "mile" });
+
+            resultRow = {
+                DepartureTerName: exist[i].departTerName,
+                DepartureTerId: exist[i].departTerId,
+            };
+        }
 
 
+    }
+    console.log(resultRow);
 
+    return res.send(response(baseResponse.SUCCESS("현재 위치에서 출발할 수 있는 가장 가까운 터미널 정보입니다."),resultRow));
 
+}
 
+exports.getNearestTerTwo = async function(req,res){
+
+    let distance;
+    const type = 'a';
+    const itemName = 'departure'
+
+    const terminalNm = req.query.terminalNm; // 가고 싶은 터미널 이름
+
+    const user = {
+        latitude: Number(req.query.latitude),
+        longitude: Number(req.query.longitude),
+    };
+
+    if (
+        user.latitude > 90 ||
+        user.latitude < -90 ||
+        user.longitude > 180 ||
+        user.longitude < -180
+    ) {
+        return res.send(errResponse(baseResponse.LAT_LONG_WRONG));
+    }
+
+    const temp = await busFunction.getDepartArrival(type,terminalNm,undefined,itemName);
+    console.log(temp[0].departure);
+
+    const resultRow = await busFunction.getNearestTerminal(temp,user);
 
 }
