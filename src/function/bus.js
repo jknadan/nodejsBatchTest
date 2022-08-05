@@ -91,11 +91,8 @@ exports.getRouteSchedule = async function(date,time,routeId){
             LINE : routeSchedule
         }
 
-        if(parseInt(date) === parseInt(moment().format("YYYYMMDD"))){
-            resultRow["LINE"] = routeSchedule.filter(
-                (element) => element.time > time
-            );
-        }
+        resultRow["LINE"] = routeSchedule.filter(
+            (element) => element.time > time);
 
         connection.release();
 
@@ -191,23 +188,27 @@ exports.determineArrival = async function(temp){
 exports.checkExistRoute = async function(list){
 
     const connection = await pool.getConnection((conn)=>conn);
+    let temp = [];
+    let data = [];
 
     try{
         const allRoute = await busDao.getAllRoute(connection);
-
-        let temp = [];
 
         for(let i in allRoute){
             temp[i] = allRoute[i].routeId;
         }
 
-        list = list.filter(
-            (element, i) => temp.includes(element.routeId)
+        list = list.reduce(function (list, cur) {
+            return list.concat(cur);
+        });
+
+        data = list.filter(
+            (element) => temp.includes(element.routeId)
         )
 
         connection.release;
 
-        return list;
+        return data;
 
 
     }catch (err) {
@@ -217,46 +218,78 @@ exports.checkExistRoute = async function(list){
     }
 }
 
+
+exports.getDepartList = async function(temp){
+
+    const connection = await pool.getConnection((conn)=>conn);
+    let list = [];
+
+    try{
+        const allRoute = await busDao.getAllRoute(connection);
+
+        let data = [];
+
+        for(let i in allRoute){
+            data[i] = allRoute[i].routeId;
+        }
+
+        for(let i in temp){
+            list[i] = temp[i].departure;
+        }
+
+
+        list = list[0].filter(
+            (element, i) => data.includes(element.routeId)
+        )
+
+        console.log(list.length)
+
+        connection.release;
+
+        return list;
+
+    }catch (err) {
+
+        logger.warn(err + "에러 발생");
+        connection.release();
+        return errResponse(baseResponse.FAIL);
+
+    }
+
+}
+
+
+
+
 exports.getNearestTerminal = async function(temp,user){
 
     const connection = await pool.getConnection((conn)=>conn);
-    let distance, resultRow;
+    let distance, route;
 
     try{
 
         for(let i in temp) {
-
-            for(let j in temp[i].departure){
-
-                const end = {
-                    latitude: Number(temp[i].departure[j].latitude),
-                    longitude: Number(temp[i].departure[j].longitude),
-                }
-
-                if (i === "0") {
-                    distance = haversine(user, end, {unit: "mile"});
-                    resultRow = {
-                        DepartureTerName: temp[i].departure[j].departTerName,
-                        DepartureTerId: temp[i].departure[j].departTerId,
-                        ArrivalTerName : temp[i].terminalName,
-                        ArrivalTerId : temp[i].tmoneyTerId
-
-                    };
-                } else if (distance >= haversine(user, end, {unit: "mile"})) {
-                    distance = haversine(user, end, {unit: "mile"});
-
-                    resultRow = {
-                        DepartureTerName: temp[i].departure[j].departTerName,
-                        DepartureTerId: temp[i].departure[j].departTerId,
-                        ArrivalTerName : temp[i].terminalName,
-                        ArrivalTerId : temp[i].tmoneyTerId
-
-                    };
-                }
+            const end = {
+                latitude: Number(temp[i].latitude),
+                longitude: Number(temp[i].longitude),
             }
 
 
+            if (i === "0") {
+                distance = haversine(user, end, {unit: "mile"});
+                route = temp[i].routeId;
+            } else if (distance >= haversine(user, end, {unit: "mile"})) {
+                distance = haversine(user, end, {unit: "mile"});
+
+                route = temp[i].routeId;
+            }
+
         }
+
+
+        const resultRow = await busDao.checkRouteID(connection,route);
+
+        connection.release();
 
         return resultRow;
 
@@ -265,6 +298,61 @@ exports.getNearestTerminal = async function(temp,user){
 
         logger.warn(err + "에러 발생");
         connection.release();
+        return errResponse(baseResponse.FAIL);
+
+    }
+
+}
+
+exports.getArrTimeDispatch = async function(arrTime,dispatch){
+
+    try{
+
+        let val,recom;
+
+        let arrHour = arrTime.substr(0, 2);
+        let arrMin = arrTime.substr(2, 4);
+
+
+        if(arrTime !== ""){
+
+            for(let i in dispatch.result.LINE){
+
+                let calHour = Math.floor(((parseInt(arrHour) * 60 + parseInt(arrMin) - 20) - dispatch.result.LINE[i].durationTime) / 60)
+                    .toString();
+                let calMin = Math.floor(((parseInt(arrHour) * 60 + parseInt(arrMin) - 20) - dispatch.result.LINE[i].durationTime) % 60)
+                    .toString();
+
+                if(calMin === '0')
+                    calMin = '00';
+
+                let calculatedTime = calHour + calMin;
+                console.log(calculatedTime);
+                if(i === '0'){
+                    val = Math.abs(calculatedTime - dispatch.result.LINE[0].time);
+                    console.log("val :" + val)
+                    recom = dispatch.result.LINE[i];
+                }else if(val > Math.abs(calculatedTime - dispatch.result.LINE[i].time)){
+                    val = Math.abs(calculatedTime - dispatch.result.LINE[i].time);
+                    console.log("하이: " + val)
+                    recom = dispatch.result.LINE[i];
+                }
+            }
+
+            if(!recom)
+                return errResponse(baseResponse.TERMINAL_NOT_FOUND);
+
+            const resultRow = {
+                departure: dispatch.result.departure,
+                arrival: dispatch.result.arrival,
+                LINE: recom
+            }
+            return response(baseResponse.SUCCESS("말씀하신 요청사항에 따른 배차 정보입니다."),resultRow);
+        }
+
+    }catch (err) {
+
+        logger.warn(err + "에러 발생");
         return errResponse(baseResponse.FAIL);
 
     }

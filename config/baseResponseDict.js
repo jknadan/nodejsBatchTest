@@ -75,6 +75,10 @@ module.exports = {
         code : -1 ,
         message : "이미 지난 시각의 좌석은 조회할 수 없습니다."},
 
+    WRONG_TIME_PARAMS : {isSuccess : false,
+        code : -1 ,
+        message : "출발 시각과 도착 시각 중 하나만 말씀해주세요"},
+
 
 
 };

@@ -16,4 +16,10 @@ router.get("/terminal/list/nearest", bus.getNearestTer);
 
 router.get("/terminal/list/nearest/two", bus.getNearestTerTwo);
 
+router.post("/bus/reservation/auto/ai", bus.autoReserveController);
+
+router.get("/bus/reservation/auto/ai/depart", bus.autoReserveDepart);
+
+router.get("/bus/reservation/auto/ai/no-depart", bus.autoReserveNoDepart);
+
 module.exports = router;

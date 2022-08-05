@@ -199,6 +199,7 @@ exports.getNearestTer = async function(req,res){
 exports.getNearestTerTwo = async function(req,res){
 
     let distance;
+    let list = [];
     const type = 'a';
     const itemName = 'departure'
 
@@ -220,8 +221,140 @@ exports.getNearestTerTwo = async function(req,res){
 
     const temp = await busFunction.getDepartArrival(type,terminalNm,undefined,itemName);
 
-    const resultRow = await busFunction.getNearestTerminal(temp,user);
+    for(let i in temp){
+        list[i] = temp[i].departure;
+    }
+
+    const array = await busFunction.checkExistRoute(list);
+
+    const resultRow = await busFunction.getNearestTerminal(array,user);
+
+    if(resultRow === undefined){
+        return errResponse(baseResponse.TERMINAL_NOT_FOUND);
+    }
 
     return res.send(response(baseResponse.SUCCESS("현재 위치에서 출발할 수 있는 가장 가까운 터미널 정보입니다."),resultRow));
+
+}
+
+exports.autoReserveController = async function(req,res){
+
+    const user = {
+        latitude: req.query.latitude,
+        longitude: req.query.longitude,
+    };
+
+    const { terSfr, terSto, date, time, arrTime } = req.body;
+
+    if ((!terSfr || terSfr === "") && (terSto !== undefined || terSto !== "")) {
+        res.redirect(
+            url.format({
+                pathname: "/bus/reservation/auto/ai/no-depart",
+                query: {
+                    arrivalKeyword: terSto,
+                    time: time,
+                    latitude: user.latitude,
+                    longitude: user.longitude,
+                    date: date,
+                    arr_time : arrTime
+                },
+            })
+        );
+    } else {
+        res.redirect(
+            url.format({
+                pathname: "/bus/reservation/auto/ai/depart",
+                query: {
+                    departKeyword: terSfr,
+                    arrivalKeyword: terSto,
+                    time: time,
+                    date: date,
+                    arr_time : arrTime
+                },
+            })
+        );
+    }
+
+}
+
+exports.autoReserveNoDepart = async function(req,res){
+
+    const arrivalKeyword = req.query.arrivalKeyword;
+    let time = req.query.time;
+    let date = req.query.date;
+    let list = [];
+    let arrTime = req.query.arr_time;
+    let now = new Date();
+
+    let params = {
+        arrivalKeyword : arrivalKeyword,
+        time : time,
+        date : date,
+        arr_time : arrTime
+    };
+
+    if(parseInt(moment().format("YYYYMMDD")) < date && !time && !arrTime){
+        return res.send(response(baseResponse.SUCCESS("원하시는 시간이 있으신가요?"),params));
+    }
+
+    if(time !== "" && arrTime !== "")
+        return res.send(errResponse(baseResponse.WRONG_TIME_PARAMS));
+
+
+
+    const user = {
+        latitude: Number(req.query.latitude),
+        longitude: Number(req.query.longitude),
+    };
+
+    if (!date) {
+        date = now.toFormat("YYYYMMDD");
+    } else if (parseInt(date) > parseInt(moment().add(30,"days").format("YYYYMMDD"))) {
+        return res.send(errResponse(baseResponse.OUT_RANGE_DATE));
+    }
+
+    if (!time && (parseInt(date) > parseInt(moment().format("YYYYMMDD"))) ) {
+        time = "0000";
+    }else if(!time && (parseInt(date) === parseInt(moment().format("YYYYMMDD"))) ) {
+        time = now.toFormat("HH24MI");
+    }
+
+    const temp = await busFunction.getDepartArrival('a',arrivalKeyword,undefined,"departure");
+
+    for(let i in temp){
+        list[i] = temp[i].departure;
+    }
+
+    const array = await busFunction.checkExistRoute(list);
+
+    const routeRow = await busFunction.getNearestTerminal(array,user);
+
+    if(routeRow === undefined){
+        return res.send(errResponse(baseResponse.TERMINAL_NOT_FOUND));
+    }
+
+    const dispatch = await busFunction.getRouteSchedule(date,time,routeRow[0].routeId);
+
+    if(arrTime !== ""){
+
+        const arrTimeDispatch = await busFunction.getArrTimeDispatch(arrTime,dispatch);
+
+        return res.send(arrTimeDispatch);
+    }
+
+    if(!dispatch.result.LINE[0]){
+        return res.send(errResponse(baseResponse.TERMINAL_NOT_FOUND));
+    }
+
+    const resultRow = {
+        departure: dispatch.result.departure,
+        arrival: dispatch.result.arrival,
+        LINE: dispatch.result.LINE[0]
+    }
+    return res.send(response(baseResponse.SUCCESS("말씀하신 요청사항에 따른 배차 정보입니다."),resultRow));
+
+}
+
+exports.autoReserveDepart = async function(req,res){
 
 }
