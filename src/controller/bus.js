@@ -137,7 +137,7 @@ exports.getSeatList = async function (req, res) {
     return res.send(resultRow);
 
 };
-
+// 기존 방법
 exports.getNearestTer = async function(req,res){
 
     let distance, resultRow;
@@ -195,6 +195,7 @@ exports.getNearestTer = async function(req,res){
 
 }
 
+// 수정 방법
 exports.getNearestTerTwo = async function(req,res){
 
     let distance;
@@ -218,8 +219,9 @@ exports.getNearestTerTwo = async function(req,res){
     }
 
     const temp = await busFunction.getDepartArrival(type,terminalNm,undefined,itemName);
-    console.log(temp[0].departure);
 
     const resultRow = await busFunction.getNearestTerminal(temp,user);
+
+    return res.send(response(baseResponse.SUCCESS("현재 위치에서 출발할 수 있는 가장 가까운 터미널 정보입니다."),resultRow));
 
 }

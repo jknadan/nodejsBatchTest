@@ -4,6 +4,7 @@ const busDao = require("../DAO/bus");
 const axios = require("axios");
 const { pool } = require("../../config/database");
 const { response, errResponse } = require("../../config/response");
+const haversine = require("haversine");
 const moment = require("moment");
 require('moment-timezone');
 moment.tz.setDefault("Asia/Seoul");
@@ -219,14 +220,52 @@ exports.checkExistRoute = async function(list){
 exports.getNearestTerminal = async function(temp,user){
 
     const connection = await pool.getConnection((conn)=>conn);
+    let distance, resultRow;
 
     try{
 
+        for(let i in temp) {
+
+            for(let j in temp[i].departure){
+
+                const end = {
+                    latitude: Number(temp[i].departure[j].latitude),
+                    longitude: Number(temp[i].departure[j].longitude),
+                }
+
+                if (i === "0") {
+                    distance = haversine(user, end, {unit: "mile"});
+                    resultRow = {
+                        DepartureTerName: temp[i].departure[j].departTerName,
+                        DepartureTerId: temp[i].departure[j].departTerId,
+                        ArrivalTerName : temp[i].terminalName,
+                        ArrivalTerId : temp[i].tmoneyTerId
+
+                    };
+                } else if (distance >= haversine(user, end, {unit: "mile"})) {
+                    distance = haversine(user, end, {unit: "mile"});
+
+                    resultRow = {
+                        DepartureTerName: temp[i].departure[j].departTerName,
+                        DepartureTerId: temp[i].departure[j].departTerId,
+                        ArrivalTerName : temp[i].terminalName,
+                        ArrivalTerId : temp[i].tmoneyTerId
+
+                    };
+                }
+            }
+
+
+        }
+
+        return resultRow;
 
 
     }catch (err) {
 
-
+        logger.warn(err + "에러 발생");
+        connection.release();
+        return errResponse(baseResponse.FAIL);
 
     }
 
