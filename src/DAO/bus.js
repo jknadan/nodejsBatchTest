@@ -126,3 +126,17 @@ exports.getAllRoute = async function(connection){
 
     return resultRow;
 }
+
+exports.getRouteDepartAI = async function(connection, terminalId, arrivalKeyword){
+
+    const sql = `
+        select routeId,arrivalTerId,arrivalTerName 
+            from route    
+        where departTerId = ? and arrivalTerName like` + ' \'%'+ arrivalKeyword +'%\';';
+
+
+    const [resultRow] = await connection.query(sql,terminalId);
+
+    return resultRow;
+
+}

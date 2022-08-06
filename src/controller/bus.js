@@ -103,9 +103,6 @@ exports.getDepartArrival = async function(req,res){
         time = now.toFormat("HH24MI");
     }
 
-    console.log("설정 날짜 : " + date);
-    console.log("설정 시간 : " + time);
-
     if (!routeId) {
         return res.send(errResponse(baseResponse.PARAM_EMPTY));
     }
@@ -256,7 +253,7 @@ exports.autoReserveController = async function(req,res){
                     latitude: user.latitude,
                     longitude: user.longitude,
                     date: date,
-                    arr_time : arrTime
+                    arrTime : arrTime
                 },
             })
         );
@@ -269,7 +266,7 @@ exports.autoReserveController = async function(req,res){
                     arrivalKeyword: terSto,
                     time: time,
                     date: date,
-                    arr_time : arrTime
+                    arrTime : arrTime
                 },
             })
         );
@@ -279,11 +276,10 @@ exports.autoReserveController = async function(req,res){
 
 exports.autoReserveNoDepart = async function(req,res){
 
-    const arrivalKeyword = req.query.arrivalKeyword;
-    let time = req.query.time;
-    let date = req.query.date;
+    let {arrivalKeyword, time, date, arrTime} = req.query;
+
     let list = [];
-    let arrTime = req.query.arr_time;
+
     let now = new Date();
 
     let params = {
@@ -356,5 +352,83 @@ exports.autoReserveNoDepart = async function(req,res){
 }
 
 exports.autoReserveDepart = async function(req,res){
+
+    let {departKeyword, arrivalKeyword, time, date, arrTime} = req.query;
+
+    let list = [];
+
+    let now = new Date();
+
+    let params = {
+        departKeyword : departKeyword,
+        arrivalKeyword : arrivalKeyword,
+        time : time,
+        date : date,
+        arr_time : arrTime
+    };
+
+    if(parseInt(moment().format("YYYYMMDD")) < date && !time && !arrTime){
+        return res.send(response(baseResponse.SUCCESS("원하시는 시간이 있으신가요?"),params));
+    }
+
+    if(time !== "" && arrTime !== "")
+        return res.send(errResponse(baseResponse.WRONG_TIME_PARAMS));
+
+    const user = {
+        latitude: Number(req.query.latitude),
+        longitude: Number(req.query.longitude),
+    };
+
+    if (!date) {
+        date = now.toFormat("YYYYMMDD");
+    } else if (parseInt(date) > parseInt(moment().add(30,"days").format("YYYYMMDD"))) {
+        return res.send(errResponse(baseResponse.OUT_RANGE_DATE));
+    }
+
+    if (!time && (parseInt(date) > parseInt(moment().format("YYYYMMDD"))) ) {
+        time = "0000";
+    }else if(!time && (parseInt(date) === parseInt(moment().format("YYYYMMDD"))) ) {
+        time = now.toFormat("HH24MI");
+    }
+
+
+    const allRouteList = await busFunction.getDepartListAI(departKeyword,arrivalKeyword);
+
+    let routeList = allRouteList.filter((element)=> element.arrival[0] !== undefined);
+
+    if(routeList[0] === undefined){
+        return res.send(errResponse(baseResponse.EMPTY_ROUTE_ID));
+    }
+
+    let arr = [];
+    for(let i in routeList){
+        arr[i] = routeList[i].arrival;
+    }
+
+    const existRoute = await busFunction.checkExistRoute(arr);
+    console.log(existRoute);
+
+    let rand = Math.floor(Math.random()*existRoute.length);
+
+    const dispatch = await busFunction.getRouteSchedule(date,time,existRoute[rand].routeId);
+
+    if(arrTime !== ""){
+
+        const arrTimeDispatch = await busFunction.getArrTimeDispatch(arrTime,dispatch);
+
+        return res.send(arrTimeDispatch);
+    }
+
+    if(!dispatch.result.LINE[0]){
+        return res.send(errResponse(baseResponse.TERMINAL_NOT_FOUND));
+    }
+
+    const resultRow = {
+        departure: dispatch.result.departure,
+        arrival: dispatch.result.arrival,
+        LINE: dispatch.result.LINE[0]
+    }
+    return res.send(response(baseResponse.SUCCESS("말씀하신 요청사항에 따른 배차 정보입니다."),resultRow));
+
 
 }

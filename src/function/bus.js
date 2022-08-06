@@ -119,13 +119,10 @@ exports.getSeatInfo = async function(routeId,date,time){
         if(!checkRouteId || checkRouteId[0] === undefined)
             return errResponse(baseResponse.EMPTY_ROUTE_ID)
 
-        console.log(checkRouteId)
-
         let params = await busDao.getRouteSchedule(connection,routeId,date);
         params = params.filter(
             (element) => element.time === time
         )
-        console.log(params);
 
         let url =
             "https://apigw.tmoney.co.kr:5556/gateway/xzzIbtInfoGet/v1/ibt_info/" +
@@ -318,23 +315,25 @@ exports.getArrTimeDispatch = async function(arrTime,dispatch){
 
             for(let i in dispatch.result.LINE){
 
-                let calHour = Math.floor(((parseInt(arrHour) * 60 + parseInt(arrMin) - 20) - dispatch.result.LINE[i].durationTime) / 60)
+                let calHour = Math.floor(((parseInt(arrHour) * 60 + parseInt(arrMin) - 20) -
+                    dispatch.result.LINE[i].durationTime) / 60)
                     .toString();
-                let calMin = Math.floor(((parseInt(arrHour) * 60 + parseInt(arrMin) - 20) - dispatch.result.LINE[i].durationTime) % 60)
+                let calMin = Math.floor(((parseInt(arrHour) * 60 + parseInt(arrMin) - 20) -
+                    dispatch.result.LINE[i].durationTime) % 60)
                     .toString();
 
                 if(calMin === '0')
                     calMin = '00';
 
                 let calculatedTime = calHour + calMin;
-                console.log(calculatedTime);
+
                 if(i === '0'){
                     val = Math.abs(calculatedTime - dispatch.result.LINE[0].time);
-                    console.log("val :" + val)
+
                     recom = dispatch.result.LINE[i];
                 }else if(val > Math.abs(calculatedTime - dispatch.result.LINE[i].time)){
                     val = Math.abs(calculatedTime - dispatch.result.LINE[i].time);
-                    console.log("하이: " + val)
+
                     recom = dispatch.result.LINE[i];
                 }
             }
@@ -358,3 +357,35 @@ exports.getArrTimeDispatch = async function(arrTime,dispatch){
     }
 
 }
+
+exports.getDepartListAI = async function(departKeyword,arrivalKeyword){
+
+    const connection = await pool.getConnection((conn)=>conn);
+
+    try{
+
+        let busList = await busDao.searchBusKeyword(connection,departKeyword);
+
+        let resultRow = [];
+
+        for(let i in busList){
+            resultRow[i] = busList[i];
+
+            resultRow[i]["arrival"] = await busDao.getRouteDepartAI(connection,busList[i].tmoneyTerId,arrivalKeyword);
+
+        }
+
+        connection.release();
+
+        return resultRow;
+
+    }catch (err) {
+
+        logger.warn(err + "에러 발생");
+        connection.release();
+        return errResponse(baseResponse.FAIL);
+
+    }
+
+}
+
