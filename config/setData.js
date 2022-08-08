@@ -74,9 +74,8 @@ async function getRouteData (temp) {
 async function getSchedule(){
     let dateArray = [];
 
-    for(let i=0; i<31;i++){
-        dateArray[i] = moment().add(i,"days").format("YYYYMMDD");
-    }
+    dateArray[0] = moment().add(30,"days").format("YYYYMMDD");
+
 
     // console.log(dateArray);
     const promises = [];

@@ -5,12 +5,14 @@ const batchStart = require("./batch");
 
 function batch(){
 
-    cron.schedule('* * * * * * ',async function(){
+// 매일 자정은 0 0 0 * * *
+    cron.schedule('0 0 0 * * * ',async function(){
         console.log("배치 시작");
-        batchStart.start();
+        await batchStart.start();
     });
-
 
 }
 
-module.exports = batch
+module.exports = {
+    start : batch
+}

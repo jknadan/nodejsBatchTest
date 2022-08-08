@@ -406,28 +406,33 @@ exports.autoReserveDepart = async function(req,res){
     }
 
     const existRoute = await busFunction.checkExistRoute(arr);
-    console.log(existRoute);
+    // console.log(existRoute);
 
-    let rand = Math.floor(Math.random()*existRoute.length);
+    let dispatch = [];
+    let resultRow = [];
+    for(let i in existRoute){
+        dispatch[i] = await busFunction.getRouteSchedule(date,time,existRoute[i].routeId);
 
-    const dispatch = await busFunction.getRouteSchedule(date,time,existRoute[rand].routeId);
+        if(arrTime !== ""){
 
-    if(arrTime !== ""){
+            const arrTimeDispatch = await busFunction.getArrTimeDispatch(arrTime,dispatch[i],i);
 
-        const arrTimeDispatch = await busFunction.getArrTimeDispatch(arrTime,dispatch);
+            return res.send(arrTimeDispatch);
 
-        return res.send(arrTimeDispatch);
+        }
+
+        if(!dispatch[i].result.LINE[0]){
+            return res.send(errResponse(baseResponse.TERMINAL_NOT_FOUND));
+        }
+
+
+        resultRow[i] = {
+            departure: dispatch[i].result.departure,
+            arrival: dispatch[i].result.arrival,
+            LINE: dispatch[i].result.LINE[0]
+        }
     }
 
-    if(!dispatch.result.LINE[0]){
-        return res.send(errResponse(baseResponse.TERMINAL_NOT_FOUND));
-    }
-
-    const resultRow = {
-        departure: dispatch.result.departure,
-        arrival: dispatch.result.arrival,
-        LINE: dispatch.result.LINE[0]
-    }
     return res.send(response(baseResponse.SUCCESS("말씀하신 요청사항에 따른 배차 정보입니다."),resultRow));
 
 

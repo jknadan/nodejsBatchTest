@@ -301,7 +301,9 @@ exports.getNearestTerminal = async function(temp,user){
 
 }
 
-exports.getArrTimeDispatch = async function(arrTime,dispatch){
+exports.getArrTimeDispatch = async function(arrTime,dispatch,j){
+
+    let resultRow = [];
 
     try{
 
@@ -341,7 +343,8 @@ exports.getArrTimeDispatch = async function(arrTime,dispatch){
             if(!recom)
                 return errResponse(baseResponse.TERMINAL_NOT_FOUND);
 
-            const resultRow = {
+
+            resultRow[j] = {
                 departure: dispatch.result.departure,
                 arrival: dispatch.result.arrival,
                 LINE: recom
